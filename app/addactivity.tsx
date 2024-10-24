@@ -53,6 +53,8 @@ const AddActivity = () => {
     }));
   };
 
+  const handleImage = async () => {}; //Todo: Implement image picker
+
   const handleSubmit = async () => {
     const { title, description, startTime, endTime } = formData;
 
@@ -80,8 +82,7 @@ const AddActivity = () => {
         <KeyboardAvoidingView
           style={styles.container}
           behavior={Platform.OS === "ios" ? "padding" : undefined} //Android's built-in handling should suffice
-          keyboardVerticalOffset={80}
-        >
+          keyboardVerticalOffset={80}>
           <ScrollView contentContainerStyle={{ flexGrow: 1, gap: 20 }}>
             <Text style={styles.headerText}>
               Opret en aktivitet til {prettyDate(selectedDate)}
@@ -141,8 +142,13 @@ const AddActivity = () => {
 
             <TouchableOpacity
               style={valid ? styles.buttonValid : styles.buttonDisabled}
-              onPress={handleSubmit}
-            >
+              onPress={handleImage}>
+              <Text style={styles.buttonText}>Vælg Billede</Text>
+              <Text style={styles.imageText}>XXX valgt</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={valid ? styles.buttonValid : styles.buttonDisabled}
+              onPress={handleSubmit}>
               <Text style={styles.buttonText}>Tilføj</Text>
             </TouchableOpacity>
           </ScrollView>
@@ -213,6 +219,11 @@ const styles = StyleSheet.create({
   buttonText: {
     color: colors.white,
     fontSize: 16,
+    fontWeight: "500",
+  },
+  imageText: {
+    color: colors.black,
+    fontSize: 12,
     fontWeight: "500",
   },
   header: {
