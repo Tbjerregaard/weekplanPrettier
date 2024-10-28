@@ -23,12 +23,16 @@ import formatTimeHHMM from "../utils/formatTimeHHMM";
 import { colors } from "../utils/colors";
 import { z } from "zod";
 import useValidation from "../hooks/useValidation";
+import ImagePickerSelector from "../components/ImagePickerSelector";
 
 const schema = z.object({
   title: z.string().trim().min(1, "Du skal have en titel"),
   description: z.string().trim().min(1, "Du skal have en beskrivelse"),
   startTime: z.date(),
   endTime: z.date(),
+  imageUri: z.string(),
+  fileName: z.string(),
+  image: z.string(), // change to send image to database later
 });
 
 type FormData = z.infer<typeof schema>;
@@ -42,6 +46,9 @@ const AddActivity = () => {
     description: "",
     startTime: new Date(),
     endTime: new Date(),
+    imageUri: "",
+    fileName: "",
+    image: "", // change to send image to database later
   });
 
   const { errors, valid } = useValidation({ schema, formData });
@@ -53,7 +60,18 @@ const AddActivity = () => {
     }));
   };
 
-  const handleImage = async () => {}; //Todo: Implement image picker
+  const [showScreen, setScreenVisibility] = useState(false);
+  const [imageName, setImageName] = useState("No filename");
+
+  const handleImage = async (imageUri: string, fileName: string) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      image: imageUri,
+      fileName: fileName,
+    }));
+    setImageName(fileName);
+    console.log("Selected image is:", fileName);
+  };
 
   const handleSubmit = async () => {
     const { title, description, startTime, endTime } = formData;
@@ -140,12 +158,11 @@ const AddActivity = () => {
             />
             <Text>{errors?.endTime?._errors}</Text>
 
-            <TouchableOpacity
-              style={valid ? styles.buttonValid : styles.buttonDisabled}
-              onPress={handleImage}>
-              <Text style={styles.buttonText}>Vælg Billede</Text>
-              <Text style={styles.imageText}>XXX valgt</Text>
-            </TouchableOpacity>
+            <ImagePickerSelector
+              onClose={() => setScreenVisibility(false)}
+              onSelect={handleImage}
+            />
+
             <TouchableOpacity
               style={valid ? styles.buttonValid : styles.buttonDisabled}
               onPress={handleSubmit}>
