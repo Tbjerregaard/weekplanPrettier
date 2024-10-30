@@ -8,16 +8,21 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  TextInput,
 } from "react-native";
 import { colors } from "../utils/colors";
 
+// Filenames cannot be gotten from emulator, putting them manually
 const images = [
-  require("../assets/pictogrammer/class.png"),
-  require("../assets/pictogrammer/food.png"),
-  require("../assets/pictogrammer/libary.png"),
-  require("../assets/pictogrammer/cycling.png"),
-  require("../assets/pictogrammer/beat.png"),
-  require("../assets/pictogrammer/meat.png"),
+  { source: require("../assets/pictogrammer/class.png"), fileName: "class" },
+  { source: require("../assets/pictogrammer/food.png"), fileName: "food" },
+  { source: require("../assets/pictogrammer/libary.png"), fileName: "libary" },
+  {
+    source: require("../assets/pictogrammer/cycling.png"),
+    fileName: "cycling",
+  },
+  { source: require("../assets/pictogrammer/beat.png"), fileName: "swimming" },
+  { source: require("../assets/pictogrammer/meat.png"), fileName: "meat" },
 ];
 
 const ImagePickerSelector = ({
@@ -28,20 +33,24 @@ const ImagePickerSelector = ({
   onClose: () => void;
 }) => {
   const [showScreen, setScreenVisibility] = useState(false);
-  const [currentImage, setImage] = useState({
+  const [currentImage, setImage] = useState<{ uri: string; fileName: string }>({
     uri: "",
     fileName: "",
   });
+  const [searchText, setSearchText] = useState("");
 
-  const handleImage = async (image: any) => {
-    const resImage = Image.resolveAssetSource(image);
+  const filterImages = images.filter((image) =>
+    image.fileName.toLowerCase().includes(searchText.toLowerCase())
+  );
+
+  const handleImage = (image: any) => {
     setImage({
-      uri: resImage.uri,
-      fileName: resImage.uri.split("/").pop() || "",
+      uri: Image.resolveAssetSource(image.source).uri,
+      fileName: image.fileName,
     });
   };
 
-  const ConfirmImage = async () => {
+  const ConfirmImage = () => {
     if (currentImage) {
       onSelect(currentImage.uri, currentImage.fileName);
       close();
@@ -64,27 +73,33 @@ const ImagePickerSelector = ({
         <View style={styles.modalContainer}>
           <View style={styles.modalBox}>
             <ScrollView contentContainerStyle={styles.imageContainer}>
-              {images.map((image, id) => (
+              {filterImages.map((image, id) => (
                 <TouchableOpacity key={id} onPress={() => handleImage(image)}>
                   <Image
-                    source={image}
+                    source={image.source}
                     style={[
                       styles.image,
-                      currentImage?.uri ===
-                        Image.resolveAssetSource(image).uri &&
+                      currentImage.fileName === image.fileName &&
                         styles.selectedImage,
                     ]}
                   />
                 </TouchableOpacity>
               ))}
             </ScrollView>
+            <TextInput
+              style={styles.searchBox}
+              placeholder="Søg efter billede"
+              placeholderTextColor={colors.gray}
+              value={searchText}
+              onChangeText={(text) => setSearchText(text)}
+            />
             <View style={styles.buttonContainer}>
               <TouchableOpacity onPress={close} style={styles.button}>
                 <Text>Luk</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={ConfirmImage}
-                disabled={!currentImage}
+                disabled={!currentImage.fileName}
                 style={styles.button}>
                 <Text>Vælg Billede</Text>
               </TouchableOpacity>
@@ -110,6 +125,15 @@ const styles = StyleSheet.create({
     height: "85%",
     borderRadius: 10,
     padding: 20,
+  },
+  searchBox: {
+    backgroundColor: colors.white,
+    borderColor: colors.gray,
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
+    width: "100%",
+    marginBottom: 10,
   },
   imageContainer: {
     justifyContent: "center",
