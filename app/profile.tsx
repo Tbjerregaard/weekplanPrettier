@@ -12,6 +12,7 @@ import { ProfilePicture } from "../components/ProfilePage";
 import { SharedStyles, rem } from "../utils/SharedStyles";
 import React from "react";
 import IconButton from "../components/IconButton";
+import { router } from "expo-router";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -89,7 +90,7 @@ const ProfilePage: React.FC = () => {
                 </Text>
               </View>
               <IconButton style={styles.iconMail}>
-                <Ionicons name="mail-outline" size={40} />
+                <Ionicons name="mail-outline" size={40} onPress={() => router.replace("/invitations")}/>
               </IconButton>
             </View>
             <View style={styles.organizationsContainer}>
