@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import Reanimated, {
 } from "react-native-reanimated";
 import usePictogram from "../../../hooks/usePictogram";
 import { colors } from "../../../utils/colors";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const CONTAINER_HEIGHT = 140;
 const CONTAINER_PADDING = 12;
@@ -106,6 +107,7 @@ type ActivityItemProps = {
   showDetails: () => void;
   setImageUri: React.Dispatch<React.SetStateAction<string | undefined>>;
   setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  activityId: number;
 };
 
 /**
@@ -134,10 +136,23 @@ const ActivityItem: React.FC<ActivityItemProps> = ({
   showDetails,
   setImageUri,
   setModalVisible,
+  activityId,
 }) => {
   const { useFetchPictograms } = usePictogram(27575);
-  const { data, error, isLoading } = useFetchPictograms;
+  const { data } = useFetchPictograms;
   const swipeableRef = React.useRef<SwipeableMethods>(null);
+  const [activityImage, setActivityImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchImage = async () => {
+      const getImage = await AsyncStorage.getItem("activityImage");
+      const parsedImage = getImage ? JSON.parse(getImage) : {};
+      if (parsedImage[activityId]) {
+        setActivityImage(parsedImage[activityId].image);
+      }
+    };
+    fetchImage();
+  }, [activityId]);
 
   const handleCloseOnCheckTaskPress = () => {
     if (swipeableRef.current) {
@@ -160,10 +175,6 @@ const ActivityItem: React.FC<ActivityItemProps> = ({
     setImageUri(uri);
     setModalVisible(true);
   };
-
-  if (!isLoading && error) {
-    throw new Error("Fejl kunne ikke hente piktogramerne");
-  }
 
   return (
     <>
@@ -194,18 +205,24 @@ const ActivityItem: React.FC<ActivityItemProps> = ({
                   ? colors.lightGreen
                   : colors.lightBlue,
               },
-            ]}
-          >
+            ]}>
             <Text style={styles.timeText}>{time.replace("-", "\n")}</Text>
             <Text
               style={styles.labelText}
               numberOfLines={2}
-              ellipsizeMode="tail"
-            >
+              ellipsizeMode="tail">
               {label}
             </Text>
             <View style={styles.iconContainer}>
-              {data ? (
+              {activityImage ? (
+                <Pressable onPress={() => handleImagePress(activityImage)}>
+                  <Image
+                    source={{ uri: activityImage }}
+                    style={{ width: 90, height: 90 }}
+                    resizeMode="contain"
+                  />
+                </Pressable>
+              ) : data ? (
                 <Pressable onPress={() => handleImagePress(data)}>
                   <Image
                     source={{ uri: data }}

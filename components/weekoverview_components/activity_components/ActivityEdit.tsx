@@ -16,6 +16,9 @@ import TimePicker from "../../TimePicker";
 import { colors } from "../../../utils/colors";
 import { z } from "zod";
 import useValidation from "../../../hooks/useValidation";
+import ImagePickerSelector from "../../ImagePickerSelector";
+import { PictogramDTO } from "../../../DTO/pictogramDTO";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type EditActivityButtonProps = {
   title: string;
@@ -79,6 +82,7 @@ const ActivityEdit = ({
   const { selectedDate } = useDate();
   const { citizenId } = useCitizen();
   const { updateActivity } = useActivity({ date: selectedDate });
+  const [showScreen, setScreenVisibility] = useState(false);
 
   const { errors, valid } = useValidation({ formData: form, schema });
 
@@ -87,6 +91,13 @@ const ActivityEdit = ({
       ...prevData,
       [field]: value,
     }));
+  };
+
+  const [selectedPictogram, setSelectedPictogram] =
+    useState<PictogramDTO | null>(null);
+
+  const handleImage = (pictogram: PictogramDTO) => {
+    setSelectedPictogram(pictogram);
   };
 
   const handleSubmit = async () => {
@@ -104,6 +115,20 @@ const ActivityEdit = ({
       isCompleted: isCompleted,
     };
     await updateActivity.mutateAsync(data);
+
+    if (selectedPictogram) {
+      const linkImageToActivity = await AsyncStorage.getItem("activityImage");
+      const parsedActivity = linkImageToActivity
+        ? JSON.parse(linkImageToActivity)
+        : {};
+
+      parsedActivity[activityId] = selectedPictogram;
+      await AsyncStorage.setItem(
+        "activityImage",
+        JSON.stringify(parsedActivity)
+      );
+    }
+
     router.back();
   };
 
@@ -174,11 +199,14 @@ const ActivityEdit = ({
         />
         <Text>{errors?.date?._errors}</Text>
       </View>
+      <ImagePickerSelector
+        onClose={() => setScreenVisibility(false)}
+        onSelect={handleImage}
+      />
       <TouchableOpacity
         style={valid ? styles.buttonValid : styles.buttonDisabled}
         onPress={handleSubmit}
-        disabled={!valid}
-      >
+        disabled={!valid}>
         <Text style={styles.buttonText}>Tilføj</Text>
       </TouchableOpacity>
     </View>

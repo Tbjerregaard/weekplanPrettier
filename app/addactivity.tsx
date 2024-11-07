@@ -10,7 +10,6 @@ import {
   Platform,
   ScrollView,
   TouchableOpacity,
-  Alert,
   SafeAreaView,
   View,
 } from "react-native";
@@ -24,15 +23,14 @@ import { colors } from "../utils/colors";
 import { z } from "zod";
 import useValidation from "../hooks/useValidation";
 import ImagePickerSelector from "../components/ImagePickerSelector";
+import { PictogramDTO } from "../DTO/pictogramDTO";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const schema = z.object({
   title: z.string().trim().min(1, "Du skal have en titel"),
   description: z.string().trim().min(1, "Du skal have en beskrivelse"),
   startTime: z.date(),
   endTime: z.date(),
-  imageUri: z.string(),
-  fileName: z.string(),
-  image: z.string(), // change to send image to database later
 });
 
 type FormData = z.infer<typeof schema>;
@@ -46,9 +44,6 @@ const AddActivity = () => {
     description: "",
     startTime: new Date(),
     endTime: new Date(),
-    imageUri: "",
-    fileName: "",
-    image: "", // change to send image to database later
   });
 
   const { errors, valid } = useValidation({ schema, formData });
@@ -61,16 +56,11 @@ const AddActivity = () => {
   };
 
   const [showScreen, setScreenVisibility] = useState(false);
-  const [imageName, setImageName] = useState("No filename");
+  const [selectedPictogram, setSelectedPictogram] =
+    useState<PictogramDTO | null>(null);
 
-  const handleImage = async (imageUri: string, fileName: string) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      image: imageUri,
-      fileName: fileName,
-    }));
-    setImageName(fileName);
-    console.log("Selected image is:", fileName);
+  const handleImage = (pictogram: PictogramDTO) => {
+    setSelectedPictogram(pictogram);
   };
 
   const handleSubmit = async () => {
@@ -79,7 +69,7 @@ const AddActivity = () => {
     const formattedStartTime = formatTimeHHMM(startTime);
     const formattedEndTime = formatTimeHHMM(endTime);
 
-    await useCreateActivity.mutateAsync({
+    const newActivity = await useCreateActivity.mutateAsync({
       citizenId: 1,
       data: {
         activityId: -1,
@@ -91,6 +81,20 @@ const AddActivity = () => {
         isCompleted: false,
       },
     });
+
+    if (selectedPictogram && newActivity) {
+      const linkImageToActivity = await AsyncStorage.getItem("activityImage");
+      const parsedActivity = linkImageToActivity
+        ? JSON.parse(linkImageToActivity)
+        : {};
+
+      parsedActivity[newActivity.activityId] = selectedPictogram;
+      await AsyncStorage.setItem(
+        "activityImage",
+        JSON.stringify(parsedActivity)
+      );
+    }
+
     router.back();
   };
 

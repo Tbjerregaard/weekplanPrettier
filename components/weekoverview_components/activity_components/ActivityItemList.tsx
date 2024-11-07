@@ -88,6 +88,7 @@ const ActivityItemList = () => {
         showDetails={() => handleDetails(item.activityId)}
         setImageUri={setImageUri}
         setModalVisible={setModalVisible}
+        activityId={item.activityId}
       />
     );
   };

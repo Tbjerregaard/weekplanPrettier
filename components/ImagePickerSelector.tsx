@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Button,
   Image,
@@ -11,50 +11,56 @@ import {
   TextInput,
 } from "react-native";
 import { colors } from "../utils/colors";
+import { fetchPictogramRequest } from "../apis/pictogramAPI";
+import { PictogramDTO } from "../DTO/pictogramDTO";
 
-// Filenames cannot be gotten from emulator, putting them manually
-const images = [
-  { source: require("../assets/pictogrammer/class.png"), fileName: "class" },
-  { source: require("../assets/pictogrammer/food.png"), fileName: "food" },
-  { source: require("../assets/pictogrammer/libary.png"), fileName: "libary" },
-  {
-    source: require("../assets/pictogrammer/cycling.png"),
-    fileName: "cycling",
-  },
-  { source: require("../assets/pictogrammer/beat.png"), fileName: "swimming" },
-  { source: require("../assets/pictogrammer/meat.png"), fileName: "meat" },
-];
+export const fetchedImages: PictogramDTO[] = [];
 
 const ImagePickerSelector = ({
   onSelect,
   onClose,
 }: {
-  onSelect: (imageUri: string, fileName: string) => void;
+  onSelect: (pictogram: PictogramDTO) => void;
   onClose: () => void;
 }) => {
   const [showScreen, setScreenVisibility] = useState(false);
-  const [currentImage, setImage] = useState<{ uri: string; fileName: string }>({
-    uri: "",
-    fileName: "",
-  });
+  const [images, setImages] = useState<PictogramDTO[]>([]);
+  const [currentImage, setCurrentImage] = useState<PictogramDTO | null>(null);
   const [searchText, setSearchText] = useState("");
 
-  const filterImages = images.filter((image) =>
-    image.fileName.toLowerCase().includes(searchText.toLowerCase())
-  );
-
-  const handleImage = (image: any) => {
-    setImage({
-      uri: Image.resolveAssetSource(image.source).uri,
-      fileName: image.fileName,
-    });
-  };
-
-  const ConfirmImage = () => {
-    if (currentImage) {
-      onSelect(currentImage.uri, currentImage.fileName);
-      close();
+  // Fetch all images from the DB
+  useEffect(() => {
+    if (showScreen) {
+      let isFetching = true;
+      let id = 1;
+      const fetchImages = async () => {
+        while (isFetching) {
+          try {
+            if (!fetchedImages.some((image) => image.id === id)) {
+              const pictogram = await fetchPictogramRequest(id);
+              fetchedImages.push(pictogram);
+            }
+            id++;
+          } catch (error) {
+            isFetching = false;
+          }
+        }
+        setImages([...fetchedImages]);
+      };
+      fetchImages();
     }
+  }, [showScreen === true]);
+
+  // Filter images whenever the user types something in the search box
+  useEffect(() => {
+    const filteredImages = fetchedImages.filter((image: PictogramDTO) =>
+      image.pictogramName.toLowerCase().includes(searchText.toLowerCase())
+    );
+    setImages(filteredImages);
+  }, [searchText]);
+
+  const handleImage = (image: PictogramDTO) => {
+    setCurrentImage(image);
   };
 
   const open = () => {
@@ -73,14 +79,15 @@ const ImagePickerSelector = ({
         <View style={styles.modalContainer}>
           <View style={styles.modalBox}>
             <ScrollView contentContainerStyle={styles.imageContainer}>
-              {filterImages.map((image, id) => (
-                <TouchableOpacity key={id} onPress={() => handleImage(image)}>
+              {images.map((image) => (
+                <TouchableOpacity
+                  key={image.id}
+                  onPress={() => handleImage(image)}>
                   <Image
-                    source={image.source}
+                    source={{ uri: image.pictogramName }} // uri: image.image, not working
                     style={[
                       styles.image,
-                      currentImage.fileName === image.fileName &&
-                        styles.selectedImage,
+                      currentImage?.id === image.id && styles.selectedImage,
                     ]}
                   />
                 </TouchableOpacity>
@@ -98,9 +105,14 @@ const ImagePickerSelector = ({
                 <Text>Luk</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={ConfirmImage}
-                disabled={!currentImage.fileName}
-                style={styles.button}>
+                disabled={!currentImage}
+                style={styles.button}
+                onPress={() => {
+                  if (currentImage) {
+                    onSelect(currentImage);
+                    close();
+                  }
+                }}>
                 <Text>Vælg Billede</Text>
               </TouchableOpacity>
             </View>
