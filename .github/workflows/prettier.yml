@@ -3,6 +3,7 @@ name: Prettier Formatter
 on:
   pull_request:
     branches: [master]
+    types: [opened, synchronize]  # Trigger on new commits to the PR
   workflow_dispatch:
 
 jobs:

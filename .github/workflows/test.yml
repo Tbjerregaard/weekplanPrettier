@@ -3,6 +3,7 @@ name: Node.js CI
 on:
   pull_request:
     branches: [master]
+    types: [opened, synchronize]  # Trigger on new commits to the PR
   workflow_dispatch:
 
 jobs:
@@ -16,7 +17,7 @@ jobs:
         with:
           node-version: 20
           cache: "npm"
-          
+
       - run: npm ci
       - run: npm run build --if-present
       - run: npm run test-ci
