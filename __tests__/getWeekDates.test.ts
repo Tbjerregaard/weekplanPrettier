@@ -7,17 +7,13 @@ describe("Return correct dates for week 39 of 2024", () => {
 
     const expectedDates = [23, 24, 25, 26, 27, 28, 29];
     dates.forEach((date, index) => {
-      
-      
-      
       expect(date.getDate()).toBe(expectedDates[index]);
     });
   });
 
   it("should return the correct week dates", () => {
     const mockDate = new Date("2024-09-23T00:00:00");
-    
-    
+
     const dates = getWeekDates(mockDate);
 
     const expectedDates = [23, 24, 25, 26, 27, 28, 29];
