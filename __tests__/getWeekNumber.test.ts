@@ -13,12 +13,6 @@ describe("getWeekNumber", () => {
     expect(weekNumber).toBe(1);
   });
 
-  
-  
-  
-  
-  
-  
   test("should return correct week number for a date in the last week of the year", () => {
     const date = new Date("2023-12-31");
     const weekNumber = getWeekNumber(date);
