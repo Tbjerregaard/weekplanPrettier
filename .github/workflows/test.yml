@@ -1,23 +1,44 @@
-name: Node.js CI
+name: Testing
 
 on:
-  pull_request_target:
+  pull_request:
     branches: [master]
-    types: [opened, synchronize]  # Trigger on new commits to the PR
-  workflow_dispatch:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+concurrency:
+  group: ${{ github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  statuses: write
+  actions: write
 
 jobs:
   tests:
+    needs: prettier
     runs-on: ubuntu-latest
-    
     steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js
+      - name: Checkout latest code from Prettier
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.prettier.outputs.commit_sha }}
+
+      - name: Wait for changes to register
+        run: sleep 5  # Optional, gives GitHub time to process the commit
+
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: "npm"
 
-      - run: npm ci
-      - run: npm run build --if-present
-      - run: npm run test-ci
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Application
+        run: npm run build --if-present
+
+      - name: Run Tests
+        run: npm run test-ci
