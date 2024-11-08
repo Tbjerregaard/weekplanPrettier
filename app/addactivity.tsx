@@ -39,6 +39,9 @@ type FormData = z.infer<typeof schema>;
  */
 
 const AddActivity = () => {
+  
+  
+  
   const router = useRouter();
   const { selectedDate } = useDate();
   const { addToast } = useToast();
