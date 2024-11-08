@@ -3,6 +3,9 @@ import SplashScreen from "../components/SplashScreen";
 import { router } from "expo-router";
 
 const HomePage: React.FC = () => {
+  
+  
+  
   const [isSplashVisible, setSplashVisible] = useState(true);
 
   useEffect(() => {
