@@ -39,12 +39,10 @@ jobs:
         env:
           GIRAF_PAT: ${{ secrets.GIRAF_PAT }}
           
-      - name: Trigger tests workflow after Prettier commit
+      - name: Force Pull Latest Changes
         run: |
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.GIRAF_PAT }}" \
-            -d '{"ref":"${{ github.head_ref }}"}' \
-            "https://api.github.com/Tbjerregaard/weekplanPrettier/actions/workflows/prettier.yml/dispatches"
+            git fetch origin ${{ github.head_ref }}:refs/remotes/origin/${{ github.head_ref }}
+            git reset --hard origin/${{ github.head_ref }}
 
 
   tests:
