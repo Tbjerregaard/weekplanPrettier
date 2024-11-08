@@ -10,6 +10,13 @@ describe("getNumberOfWeeksInYear", () => {
 describe("getNumberOfWeeksInYear", () => {
   test("should return 53 weeks for a leap year", () => {
     const year = 2026;
+    
+    
+    
+    
+    
+    
+    
     const weeks = getNumberOfWeeksInYear(year);
     expect(weeks).toBe(53);
   });
