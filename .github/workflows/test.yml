@@ -1,10 +1,9 @@
 name: Run Tests
 
 on:
-  workflow_run:
-    workflows: ["Prettier Formatter"]
-    types:
-      - completed
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
 
 jobs:
   tests:
