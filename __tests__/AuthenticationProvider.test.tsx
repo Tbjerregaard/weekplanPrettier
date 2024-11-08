@@ -10,6 +10,14 @@ jest.mock("../apis/loginAPI");
 jest.mock("expo-router", () => ({
   router: {
     replace: jest.fn(),
+    
+    
+    
+    
+    
+    
+    
+    
   },
 }));
 
