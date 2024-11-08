@@ -1,14 +1,8 @@
 name: Prettier Formatter
 
 on:
-  pull_request:
-    branches: [master]
-    types: [opened, synchronize, reopened]
+  workflow_call:
   workflow_dispatch: # Allows manual triggering of the workflow
-
-concurrency:
-  group: ${{ github.sha }}
-  cancel-in-progress: true
 
 permissions:
   contents: write
