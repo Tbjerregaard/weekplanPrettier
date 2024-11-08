@@ -1,8 +1,9 @@
 name: Prettier Formatter
 
 on:
-  pull_request:
+  pull_request_target:
     branches: [master]
+    types: [opened, synchronize]  # Trigger on new commits to the PR
   workflow_dispatch:
 
 jobs:
@@ -21,9 +22,9 @@ jobs:
           prettier_options: --write '**/*.{js,jsx,ts,tsx}'
       - name: Commit changes
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "TBjerregaard"
+          git config --global user.email "tbjerr22@student.aau.dk"
           git add .
           git commit -m "Prettified Code" || echo "No changes to commit"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.USER_PAT }}
