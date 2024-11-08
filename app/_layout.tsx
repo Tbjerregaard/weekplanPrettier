@@ -9,12 +9,6 @@ const RootLayout = () => {
   
   
   
-  
-  
-  
-  
-  
-  
   return (
     <ProviderWrapper>
       <SafeAreaView style={{ backgroundColor: colors.white, padding: ScaleSize(10) }} />
