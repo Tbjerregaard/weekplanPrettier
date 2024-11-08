@@ -1,9 +1,7 @@
 name: Testing
 
 on:
-  pull_request:
-    branches: [master]
-    types: [opened, synchronize, reopened]
+  workflow_call:
   workflow_dispatch: # Allows manual triggering of the workflow
 
 concurrency:
@@ -17,7 +15,6 @@ permissions:
 
 jobs:
   tests:
-    needs: prettier
     runs-on: ubuntu-latest
     steps:
       - name: Checkout latest code from Prettier
