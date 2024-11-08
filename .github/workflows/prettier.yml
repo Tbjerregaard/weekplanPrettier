@@ -1,30 +1,74 @@
 name: Prettier Formatter
 
 on:
-  pull_request_target:
+  pull_request:
     branches: [master]
-    types: [opened, synchronize]  # Trigger on new commits to the PR
-  workflow_dispatch:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+concurrency:
+  group: ${{ github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  statuses: write
+  actions: write
 
 jobs:
   prettier:
     runs-on: ubuntu-latest
+    outputs:
+      commit_sha: ${{ steps.get-commit-sha.outputs.commit_sha }}
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
           ref: ${{ github.head_ref }}
-      - name: Prettify code
+
+      - name: Prettify Code
         uses: creyD/prettier_action@v4.3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GIRAF_PAT }}  # Correct PAT token here
           prettier_options: --write '**/*.{js,jsx,ts,tsx}'
-      - name: Commit changes
-        run: |
-          git config --global user.name "TBjerregaard"
-          git config --global user.email "tbjerr22@student.aau.dk"
-          git add .
-          git commit -m "Prettified Code" || echo "No changes to commit"
+
+      - name: Get Commit SHA
+        id: get-commit-sha
+        run: echo "commit_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
         env:
-          GITHUB_TOKEN: ${{ secrets.USER_PAT }}
+          GIRAF_PAT: ${{ secrets.GIRAF_PAT }}
+          
+      - name: Force Pull Latest Changes
+        run: |
+            git fetch origin ${{ github.head_ref }}:refs/remotes/origin/${{ github.head_ref }}
+            git reset --hard origin/${{ github.head_ref }}
+
+
+  tests:
+    needs: prettier
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest code from Prettier
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.prettier.outputs.commit_sha }}
+
+      - name: Wait for changes to register
+        run: sleep 5  # Optional, gives GitHub time to process the commit
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Application
+        run: npm run build --if-present
+
+      - name: Run Tests
+        run: npm run test-ci
+
